@@ -8,7 +8,8 @@
 package com.appdynamics.extensions.memcached;
 
 
-import com.appdynamics.extensions.util.metrics.Metric;
+//import com.appdynamics.extensions.util.metrics.Metric;
+import com.appdynamics.extensions.metrics.Metric;
 
 import java.util.ArrayList;
 import java.util.HashMap;
