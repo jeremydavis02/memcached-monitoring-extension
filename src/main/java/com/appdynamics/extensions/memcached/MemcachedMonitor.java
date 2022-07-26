@@ -7,14 +7,20 @@
 
 package com.appdynamics.extensions.memcached;
 
-import com.appdynamics.extensions.PathResolver;
-import com.appdynamics.extensions.crypto.CryptoUtil;
+//import com.appdynamics.extensions.PathResolver;
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.ABaseMonitor;
+import com.appdynamics.extensions.TasksExecutionServiceProvider;
+import com.appdynamics.extensions.util.AssertUtils;
+import com.appdynamics.extensions.util.PathResolver;
+//import com.appdynamics.extensions.crypto.CryptoUtil;
+import com.appdynamics.extensions.util.CryptoUtils;
 import com.appdynamics.extensions.file.FileLoader;
 import com.appdynamics.extensions.memcached.config.Configuration;
 import com.appdynamics.extensions.memcached.config.Server;
 //import com.appdynamics.extensions.util.metrics.Metric;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.metrics.MetricFactory;
+//import com.appdynamics.extensions.util.metrics.MetricFactory;
 import com.appdynamics.extensions.yml.YmlReader;
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
@@ -40,24 +46,63 @@ import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.appdynamics.TaskInputArgs.ENCRYPTION_KEY;
-import static com.appdynamics.TaskInputArgs.PASSWORD_ENCRYPTED;
-import static com.appdynamics.extensions.util.metrics.MetricConstants.METRICS_SEPARATOR;
+//import static com.appdynamics.TaskInputArgs.ENCRYPTION_KEY;
+import static com.appdynamics.extensions.Constants.ENCRYPTION_KEY;
+//import static com.appdynamics.TaskInputArgs.PASSWORD_ENCRYPTED;
+import static com.appdynamics.extensions.Constants.ENCRYPTED_PASSWORD;
+import static com.appdynamics.extensions.memcached.Constant.METRIC_SEPARATOR;
+import static com.appdynamics.extensions.memcached.Constant.METRIC_PREFIX;
+import static com.appdynamics.extensions.memcached.Constant.MONITOR_NAME;
+//import com.appdynamics.extensions.util.MetricPathUtils;
+
+//import static com.appdynamics.extensions.util.
 
 
 /**
  * An entry point into AppDynamics extensions.
  */
-public class MemcachedMonitor extends AManagedMonitor{
+public class MemcachedMonitor extends ABaseMonitor {
 
     public static final String CONFIG_ARG = "config-file";
-    public static final Logger logger = LoggerFactory.getLogger(MemcachedMonitor.class);
+    public static final Logger logger = ExtensionsLoggerFactory.getLogger(MemcachedMonitor.class);
     public static final String METRICS_COLLECTION_SUCCESSFUL = "Metrics Collection Successful";
     public static final String FAILED = "0";
     public static final String SUCCESS = "1";
     private volatile boolean initialized;
     private Configuration config;
     private Cache<String, BigInteger> cache;
+
+    @Override
+    protected String getDefaultMetricPrefix() {
+        return METRIC_PREFIX;
+    }
+
+    @Override
+    public String getMonitorName() {
+        return MONITOR_NAME;
+    }
+
+    @Override
+    protected List<Map<String, ?>> getServers() {
+        List<Map<String, ?>> servers = (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get("servers");
+        AssertUtils.assertNotNull(servers, "The 'servers' section in config.yaml is not initialised");
+        return servers;
+    }
+
+    @Override
+    protected void doRun(TasksExecutionServiceProvider serviceProvider) {
+        try {
+            List<Map<String, ?>> servers = getServers();
+            if (!servers.isEmpty()) {
+                for (Map server : servers) {
+                    
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error("Memcached Extension can not proceed due to errors in the config.", e);
+        }
+    }
 
     public MemcachedMonitor(){
         System.out.println(logVersion());
@@ -133,9 +178,9 @@ public class MemcachedMonitor extends AManagedMonitor{
             if(config.getEncryptionKey() != null){
                 for(Server server : config.getServers()) {
                     Map cryptoMap = Maps.newHashMap();
-                    cryptoMap.put(PASSWORD_ENCRYPTED,server.getEncryptedPassword());
+                    cryptoMap.put(ENCRYPTED_PASSWORD,server.getEncryptedPassword());
                     cryptoMap.put(ENCRYPTION_KEY,config.getEncryptionKey());
-                    server.setPassword(CryptoUtil.getPassword(cryptoMap));
+                    server.setPassword(CryptoUtils.getPassword(cryptoMap));
                 }
             }
         }
@@ -196,7 +241,7 @@ public class MemcachedMonitor extends AManagedMonitor{
 
     private String getMetricPrefix(String displayName) {
         if(!Strings.isNullOrEmpty(displayName)) {
-            return config.getMetricPrefix() + displayName + METRICS_SEPARATOR;
+            return config.getMetricPrefix() + displayName + METRIC_SEPARATOR;
         }
         else{
             return config.getMetricPrefix();
