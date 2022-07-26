@@ -95,7 +95,7 @@ public class MemcachedMonitor extends ABaseMonitor {
             List<Map<String, ?>> servers = getServers();
             if (!servers.isEmpty()) {
                 for (Map server : servers) {
-                    
+
                 }
             }
         }
