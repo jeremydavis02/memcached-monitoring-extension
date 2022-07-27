@@ -7,12 +7,12 @@
 
 package com.appdynamics.extensions.memcached.config;
 
-import com.appdynamics.extensions.util.metrics.MetricOverride;
+//import com.appdynamics.extensions.util.metrics.MetricOverride;
 import com.google.common.collect.Sets;
 
 import java.util.Set;
 
-import static com.appdynamics.extensions.util.metrics.MetricConstants.METRICS_SEPARATOR;
+import static com.appdynamics.extensions.memcached.Constant.METRIC_SEPARATOR;
 
 /**
  * An object holder for the configuration file
@@ -21,7 +21,7 @@ public class Configuration {
 
     String metricPrefix;
     Server[] servers;
-    MetricOverride[] metricOverrides;
+    //MetricOverride[] metricOverrides;
     String encryptionKey;
     long timeout = 60000;
     Set<String> ignoreDelta;
@@ -39,18 +39,18 @@ public class Configuration {
     }
 
     public void setMetricPrefix(String metricPrefix) {
-        if(!metricPrefix.endsWith(METRICS_SEPARATOR)){
-            metricPrefix = metricPrefix + METRICS_SEPARATOR;
+        if(!metricPrefix.endsWith(METRIC_SEPARATOR)){
+            metricPrefix = metricPrefix + METRIC_SEPARATOR;
         }
         this.metricPrefix = metricPrefix;
     }
 
 
-    public MetricOverride[] getMetricOverrides() {
+    /*public MetricOverride[] getMetricOverrides() {
         return metricOverrides;
-    }
+    }*/
 
-    public void setMetricOverrides(MetricOverride[] metricOverrides) {
+    /*public void setMetricOverrides(MetricOverride[] metricOverrides) {
         this.metricOverrides = metricOverrides;
     }
 
@@ -61,7 +61,7 @@ public class Configuration {
     public void setEncryptionKey(String encryptionKey) {
         this.encryptionKey = encryptionKey;
     }
-
+*/
     public long getTimeout() {
         return timeout;
     }

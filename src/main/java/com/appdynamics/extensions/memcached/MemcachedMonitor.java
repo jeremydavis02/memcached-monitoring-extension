@@ -8,6 +8,7 @@
 package com.appdynamics.extensions.memcached;
 
 //import com.appdynamics.extensions.PathResolver;
+import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
@@ -37,7 +38,6 @@ import net.rubyeye.xmemcached.XMemcachedClientBuilder;
 import net.rubyeye.xmemcached.command.BinaryCommandFactory;
 import net.rubyeye.xmemcached.utils.AddrUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,9 +50,7 @@ import java.util.concurrent.TimeUnit;
 import static com.appdynamics.extensions.Constants.ENCRYPTION_KEY;
 //import static com.appdynamics.TaskInputArgs.PASSWORD_ENCRYPTED;
 import static com.appdynamics.extensions.Constants.ENCRYPTED_PASSWORD;
-import static com.appdynamics.extensions.memcached.Constant.METRIC_SEPARATOR;
-import static com.appdynamics.extensions.memcached.Constant.METRIC_PREFIX;
-import static com.appdynamics.extensions.memcached.Constant.MONITOR_NAME;
+import static com.appdynamics.extensions.memcached.Constant.*;
 //import com.appdynamics.extensions.util.MetricPathUtils;
 
 //import static com.appdynamics.extensions.util.
@@ -69,6 +67,8 @@ public class MemcachedMonitor extends ABaseMonitor {
     public static final String FAILED = "0";
     public static final String SUCCESS = "1";
     private volatile boolean initialized;
+    private MonitorContextConfiguration monitorContextConfiguration;
+    private Map<String, ?> configYml = Maps.newHashMap();
     private Configuration config;
     private Cache<String, BigInteger> cache;
 
@@ -84,32 +84,68 @@ public class MemcachedMonitor extends ABaseMonitor {
 
     @Override
     protected List<Map<String, ?>> getServers() {
-        List<Map<String, ?>> servers = (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get("servers");
-        AssertUtils.assertNotNull(servers, "The 'servers' section in config.yaml is not initialised");
+        List<Map<String, ?>> servers = (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get(CFG_SERVERS);
+        AssertUtils.assertNotNull(servers, "The 'servers' section in config.yml is not initialised");
         return servers;
+    }
+
+    @Override
+    protected void initializeMoreStuff(Map<String, String> args) {
+        monitorContextConfiguration = getContextConfiguration();
+        configYml = monitorContextConfiguration.getConfigYml();
     }
 
     @Override
     protected void doRun(TasksExecutionServiceProvider serviceProvider) {
         try {
-            List<Map<String, ?>> servers = getServers();
-            if (!servers.isEmpty()) {
-                for (Map server : servers) {
+            getConfig();
+            if (this.config != null) {
 
+                if (this.config.getServers().length > 0) {
+                    for (Server server : this.config.getServers()) {
+                        AssertUtils.assertNotNull(server.getDisplayName(), CFG_DISPLAY_NAME + " can not be null in the config.yml");
+                        AssertUtils.assertNotNull(server.getServer(), CFG_SERVER + " can not be null in the config.yml");
+                        logger.info("Starting the Memcached Task for server : " + server.getDisplayName());
+                        MemcachedMonitorTask task = new MemcachedMonitorTask(this.monitorContextConfiguration, serviceProvider.getMetricWriteHelper(), server, this.config);
+                        serviceProvider.submit(server.getDisplayName(), task);
+                    }
                 }
+            } else {
+                logger.error("The config.yml is not loaded due to previous errors.The task will not run");
             }
         }
         catch (Exception e) {
             logger.error("Memcached Extension can not proceed due to errors in the config.", e);
         }
     }
-
-    public MemcachedMonitor(){
-        System.out.println(logVersion());
+    private Configuration getConfig(){
+        if(this.config != null){
+            return this.config;
+        }
+        //turn getServers map list into Server object list to add to Configuration object
+        List<Map<String, ?>> map_servers = this.getServers();
+        ArrayList server_arr = new ArrayList();
+        for (Map<String, ?> server : map_servers) {
+            server_arr.add(new Server() {{
+                setServer((String) server.get(CFG_SERVER));
+                setDisplayName((String) server.get(CFG_DISPLAY_NAME));
+            }});
+        }
+        this.config = new Configuration() {{
+            setMetricPrefix((String) configYml.get(CFG_METRIC_PREFIX));
+            setServers((Server[]) server_arr.toArray());
+            setTimeout(Long.getLong((String) configYml.get(CFG_TIMEOUT)));
+            setIgnoreDelta((Set<String>) configYml.get(CFG_IGNORE_DELTA));
+        }};
+        return this.config;
     }
+   /* public MemcachedMonitor(){
+        System.out.println(logVersion());
+    }*/
 
+    /*
     public TaskOutput execute(Map<String, String> taskArgs, TaskExecutionContext out) throws TaskExecutionException {
-        logVersion();
+        //logVersion();
         try {
             initialize(taskArgs);
             //collect the metrics
@@ -189,11 +225,12 @@ public class MemcachedMonitor extends ABaseMonitor {
         }
     }
 
-
+*/
     /**
      * Collects all the metrics by connecting to memcached servers through XmemcachedClient.
      * @throws Exception
      */
+    /*
     private List<InstanceMetric> collectMetrics() throws Exception {
         MemcachedClient memcachedClient = null;
         try {
@@ -344,6 +381,7 @@ public class MemcachedMonitor extends ABaseMonitor {
      * @param timeRollupType
      * @param clusterRollupType
      */
+    /*
     private void printMetric(String metricName,String metricValue,String aggType,String timeRollupType,String clusterRollupType){
         MetricWriter metricWriter = getMetricWriter(metricName,
                 aggType,
@@ -355,9 +393,9 @@ public class MemcachedMonitor extends ABaseMonitor {
         logger.debug("Sending [{}|{}|{}] metric= {},value={}", aggType, timeRollupType, clusterRollupType,metricName,metricValue);
         metricWriter.printMetric(metricValue);
     }
+*/
 
-
-    private String logVersion() {
+    /*private String logVersion() {
         String msg = "Using Monitor Version [" + getImplementationVersion() + "]";
         logger.info(msg);
         return msg;
@@ -365,7 +403,7 @@ public class MemcachedMonitor extends ABaseMonitor {
 
     public String getImplementationVersion() {
         return MemcachedMonitor.class.getPackage().getImplementationTitle();
-    }
+    }*/
 
 
 

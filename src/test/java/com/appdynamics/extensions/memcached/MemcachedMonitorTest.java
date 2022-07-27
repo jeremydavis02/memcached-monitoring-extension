@@ -26,7 +26,7 @@ public class MemcachedMonitorTest {
     @Test
     public void testMemcachedMonitor() throws TaskExecutionException {
         Map<String,String> taskArgs = Maps.newHashMap();
-        taskArgs.put("config-file","src/test/resources/conf/config.yaml");
+        taskArgs.put("config-file","src/test/resources/conf/config.yml");
         TaskOutput output = memcachedMonitor.execute(taskArgs, null);
         assertTrue(output.getStatusMessage().contains("successfully"));
     }
