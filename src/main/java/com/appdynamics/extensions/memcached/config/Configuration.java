@@ -10,6 +10,7 @@ package com.appdynamics.extensions.memcached.config;
 //import com.appdynamics.extensions.util.metrics.MetricOverride;
 import com.google.common.collect.Sets;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import static com.appdynamics.extensions.memcached.Constant.METRIC_SEPARATOR;
@@ -20,17 +21,17 @@ import static com.appdynamics.extensions.memcached.Constant.METRIC_SEPARATOR;
 public class Configuration {
 
     String metricPrefix;
-    Server[] servers;
+    ArrayList<Server> servers;
     //MetricOverride[] metricOverrides;
     String encryptionKey;
     long timeout = 60000;
     Set<String> ignoreDelta;
 
-    public Server[] getServers() {
+    public ArrayList<Server> getServers() {
         return servers;
     }
 
-    public void setServers(Server[] servers) {
+    public void setServers(ArrayList<Server> servers) {
         this.servers = servers;
     }
 

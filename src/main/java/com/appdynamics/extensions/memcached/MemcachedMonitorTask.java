@@ -2,6 +2,7 @@ package com.appdynamics.extensions.memcached;
 
 import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
+import com.appdynamics.extensions.MetricWriteHelperFactory;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.memcached.config.Server;
@@ -20,7 +21,10 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class MemcachedMonitorTask implements AMonitorTaskRunnable {
@@ -29,12 +33,13 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
     private final MetricWriteHelper metricWriteHelper;
     private final MonitorContextConfiguration contextConfiguration;
     private final String metricPathPrefix;
-    private Configuration config;
+    private final Configuration config;
+    private InstanceMetric server_stats;
     public MemcachedMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper, Server server, Configuration config) {
         this.server = server;
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
-        this.metricPathPrefix = contextConfiguration.getMetricPrefix() + METRIC_SEPARATOR + server.getDisplayName() + METRIC_SEPARATOR;
+        this.metricPathPrefix = this.contextConfiguration.getMetricPrefix() + METRIC_SEPARATOR + server.getDisplayName() + METRIC_SEPARATOR;
         this.config = config;
     }
 
@@ -45,29 +50,45 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
 
     @Override
     public void run() {
+        //get metrics
+        try {
+            InstanceMetric mc_server_metrics = collectMetrics();
+            this.metricWriteHelper.transformAndPrintMetrics(mc_server_metrics.getAllMetrics());
+        }
+        catch(Exception e){
+            logger.error("Unable to collect memcached metrics ", e);
+        }
 
     }
 
-    private void printMetrics(List<Metric> allMetrics, String displayName) {
-        Set<String> ignoreDelta = config.getIgnoreDelta();
-        String prefix = getMetricPrefix();
-        List<Metric> metrics_list = Lists.newArrayList();
-        for(Metric aMetric:allMetrics) {
-            String metricPath = prefix + aMetric.getMetricPath();
-            BigInteger metricValue = new BigInteger(aMetric.getMetricValue());
-            //Metric m = new Metric();
-            if (ignoreDelta.contains(aMetric.getMetricPath())) {
-                logger.debug("Ignore delta calculation for {}" + metricPath);
-                printMetric(metricPath, metricValue.toString(), aMetric.get.getAggregator(), aMetric.getTimeRollup(), aMetric.getClusterRollup());
-            }
-            else{
-                BigInteger prevValue = cache.getIfPresent(metricPath);
-                cache.put(metricPath, metricValue);
-                if(prevValue != null){
-                    BigInteger deltaValue = metricValue.subtract(prevValue);
-                    printMetric(metricPath, deltaValue.toString(), aMetric.getAggregator(), aMetric.getTimeRollup(), aMetric.getClusterRollup());
-                }
+    private InstanceMetric collectMetrics() throws Exception {
+        MemcachedClient memcachedClient = null;
+        try {
+            memcachedClient = getMemcachedClient();
 
+            Map<InetSocketAddress, Map<String, String>> stats = memcachedClient.getStats(config.getTimeout());
+            //task structure is one server at a time so we don't really need anymore then the stats map
+            if(stats != null) {
+                Iterator<InetSocketAddress> it = stats.keySet().iterator();
+                if (it.hasNext()) {
+                    InetSocketAddress sockAddress = it.next();
+                    Map<String, String>statsmap = stats.get(sockAddress);
+                    InstanceMetric server_instance = new InstanceMetric(this.server.getDisplayName(), statsmap, this.server, this.config);
+                    server_instance.populateMetrics();
+                    this.server_stats = server_instance;
+                } else {
+                    logger.error("Unable to get stats for " + server.getServer());
+                }
+            }
+            return this.server_stats;
+        }
+        catch(Exception e){
+            logger.error("Unable to collect memcached metrics ", e);
+            throw e;
+        }
+        finally {
+            if (memcachedClient != null) {
+                memcachedClient.shutdown();
             }
         }
     }
@@ -83,18 +104,4 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
         return client;
     }
 
-    /*private void printMetric(String metricName,String metricValue,String aggType,String timeRollupType,String clusterRollupType){
-        MetricWriter metricWriter = this.metricWriteHelper(metricName,
-                aggType,
-                timeRollupType,
-                clusterRollupType
-        );
-        //   System.out.println("Sending [" + aggType + METRIC_SEPARATOR + timeRollupType + METRIC_SEPARATOR + clusterRollupType
-        //           + "] metric = " + metricName + " = " + metricValue);
-        logger.debug("Sending [{}|{}|{}] metric= {},value={}", aggType, timeRollupType, clusterRollupType,metricName,metricValue);
-        metricWriter.printMetric(metricValue);
-    }*/
-    private String getMetricPrefix() {
-        return config.getMetricPrefix() + this.server.getDisplayName() + METRIC_SEPARATOR;
-    }
 }
