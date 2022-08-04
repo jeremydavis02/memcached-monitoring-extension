@@ -9,6 +9,7 @@ import com.appdynamics.extensions.memcached.config.Server;
 import static com.appdynamics.extensions.memcached.Constant.*;
 import com.appdynamics.extensions.memcached.config.Configuration;
 import com.appdynamics.extensions.metrics.Metric;
+import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
 import com.singularity.ee.agent.systemagent.api.MetricWriter;
 import net.rubyeye.xmemcached.MemcachedClient;
@@ -20,6 +21,7 @@ import net.rubyeye.xmemcached.utils.AddrUtil;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.util.Iterator;
@@ -35,12 +37,14 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
     private final String metricPathPrefix;
     private final Configuration config;
     private InstanceMetric server_stats;
-    public MemcachedMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper, Server server, Configuration config) {
+    private Cache<String, BigDecimal> cache;
+    public MemcachedMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper, Server server, Configuration config, Cache cache) {
         this.server = server;
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.metricPathPrefix = this.contextConfiguration.getMetricPrefix() + METRIC_SEPARATOR + server.getDisplayName() + METRIC_SEPARATOR;
         this.config = config;
+        this.cache = cache;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
                 if (it.hasNext()) {
                     InetSocketAddress sockAddress = it.next();
                     Map<String, String>statsmap = stats.get(sockAddress);
-                    InstanceMetric server_instance = new InstanceMetric(this.server.getDisplayName(), statsmap, this.server, this.config);
+                    InstanceMetric server_instance = new InstanceMetric(this.server.getDisplayName(), statsmap, this.server, this.config, this.cache);
                     server_instance.populateMetrics();
                     this.server_stats = server_instance;
                 } else {

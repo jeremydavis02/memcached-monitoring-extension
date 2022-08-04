@@ -23,7 +23,7 @@ public class Configuration {
     String metricPrefix;
     ArrayList<Server> servers;
     //MetricOverride[] metricOverrides;
-    String encryptionKey;
+    //String encryptionKey;
     long timeout = 60000;
     Set<String> ignoreDelta;
 

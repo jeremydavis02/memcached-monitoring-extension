@@ -19,12 +19,15 @@ import com.appdynamics.extensions.memcached.config.Server;
 
 import com.google.common.base.Strings;
 import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Maps;
 
 import org.slf4j.Logger;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static com.appdynamics.extensions.memcached.Constant.*;
 
@@ -44,7 +47,7 @@ public class MemcachedMonitor extends ABaseMonitor {
     private MonitorContextConfiguration monitorContextConfiguration;
     private Map<String, ?> configYml = Maps.newHashMap();
     private Configuration config;
-    private Cache<String, BigInteger> cache;
+    private Cache<String, BigDecimal> cache;
 
     @Override
     protected String getDefaultMetricPrefix() {
@@ -67,6 +70,7 @@ public class MemcachedMonitor extends ABaseMonitor {
     protected void initializeMoreStuff(Map<String, String> args) {
         monitorContextConfiguration = getContextConfiguration();
         configYml = monitorContextConfiguration.getConfigYml();
+        this.cache = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
     }
 
     @Override
@@ -80,7 +84,7 @@ public class MemcachedMonitor extends ABaseMonitor {
                         AssertUtils.assertNotNull(server.getDisplayName(), CFG_DISPLAY_NAME + " can not be null in the config.yml");
                         AssertUtils.assertNotNull(server.getServer(), CFG_SERVER + " can not be null in the config.yml");
                         logger.info("Starting the Memcached Task for server : " + server.getDisplayName());
-                        MemcachedMonitorTask task = new MemcachedMonitorTask(this.monitorContextConfiguration, serviceProvider.getMetricWriteHelper(), server, this.config);
+                        MemcachedMonitorTask task = new MemcachedMonitorTask(this.monitorContextConfiguration, serviceProvider.getMetricWriteHelper(), server, this.config, this.cache);
                         serviceProvider.submit(server.getDisplayName(), task);
                     }
                 }
@@ -108,8 +112,10 @@ public class MemcachedMonitor extends ABaseMonitor {
         this.config = new Configuration() {{
             setMetricPrefix((String) configYml.get(CFG_METRIC_PREFIX));
             setServers(server_arr);
-            setTimeout(Long.getLong((String) configYml.get(CFG_TIMEOUT)));
-            setIgnoreDelta((Set<String>) configYml.get(CFG_IGNORE_DELTA));
+            Integer t = (Integer) configYml.get(CFG_TIMEOUT);
+            ArrayList<String> ignoreDeltas = (ArrayList<String>) configYml.get(CFG_IGNORE_DELTA);
+            setTimeout(t.longValue());
+            setIgnoreDelta(new HashSet<>(ignoreDeltas));
         }};
         return this.config;
     }

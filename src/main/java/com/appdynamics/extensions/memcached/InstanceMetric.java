@@ -13,13 +13,16 @@ import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.memcached.config.Configuration;
 import com.appdynamics.extensions.memcached.config.Server;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.util.ValidationUtils;
 import org.slf4j.Logger;
+import com.google.common.cache.Cache;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.appdynamics.extensions.memcached.config.Server;
 
 public class InstanceMetric {
 
@@ -29,30 +32,56 @@ public class InstanceMetric {
     public static final Logger logger = ExtensionsLoggerFactory.getLogger(InstanceMetric.class);
     private final Server server;
     private final Configuration config;
+    private final Cache<String, BigDecimal> cache;
 
-    public InstanceMetric(String displayName, Map<String,String> metricsMap, Server server, Configuration config){
+    public InstanceMetric(String displayName, Map<String,String> metricsMap, Server server, Configuration config, Cache<String, BigDecimal> cache){
         this.displayName = displayName;
         this.metricsMap = metricsMap;
         this.server = server;
         this.config = config;
+        this.cache = cache;
     }
-    public List<Metric> populateMetrics(){
-        //simple Metrics for now
-        List<Metric> allMetrics = new ArrayList<Metric>();
+    public void populateMetrics(){
+
+        List<Metric> allMetrics = new ArrayList<>();
         if(this.metricsMap != null) {
             for (Map.Entry<String, String> entry : this.metricsMap.entrySet()) {
                 String metricKey = entry.getKey();
                 String metricValue = entry.getValue();
-                Metric metric = new Metric(metricKey, metricValue, this.config.getMetricPrefix() + Constant.METRIC_SEPARATOR + this.server.getDisplayName() + Constant.METRIC_SEPARATOR);
-                if (metric != null) {
-                    allMetrics.add(metric);
-                } else {
-                    logger.debug("Ignoring metric with metricKey= " + metricKey + " ,metricValue= " + metricValue);
+                try {
+                    //validation utils throws warning and stack anytime not valid num
+                    if (ValidationUtils.isValidMetricValue(metricValue)) {
+
+                        BigDecimal val = new BigDecimal(metricValue);
+                        String metricPath = this.config.getMetricPrefix() + this.server.getDisplayName() + Constant.METRIC_SEPARATOR;
+                        String full_metric_path = metricPath + metricKey;
+                        if (this.config.getIgnoreDelta().contains(metricKey)) {
+                            logger.debug("Ignore delta calculation for {}" + full_metric_path);
+                        } else {
+                            //TODO as it turns out DeltaMetricsCalculator will do this
+                            //could replace the global cache pointer with this class instance
+                            //just run metricValue = calculateDelta(full_metric_path, val)
+                            BigDecimal cache_val = this.cache.getIfPresent(full_metric_path);
+                            if (cache_val != null) {
+                                cache.put(full_metric_path, val);
+                                BigDecimal deltaValue = val.subtract(cache_val);
+                                metricValue = deltaValue.toString();
+                            }
+
+                        }
+                        Metric metric = new Metric(metricKey, metricValue, full_metric_path);
+
+                        allMetrics.add(metric);
+                    }
                 }
+                catch (Exception e){
+                    logger.debug("Ignoring metric with metricKey= " + metricKey + " ,metricValue= " + metricValue);
+                    logger.error(e.getMessage());
+                }
+
             }
         }
         this.setAllMetrics(allMetrics);
-        return this.getAllMetrics();
     }
     public String getDisplayName() {
         return displayName;
@@ -64,7 +93,7 @@ public class InstanceMetric {
 
     public Map<String, String> getMetricsMap() {
         if(metricsMap == null){
-            metricsMap = new HashMap<String, String>();
+            metricsMap = new HashMap<>();
         }
         return metricsMap;
     }
@@ -75,7 +104,7 @@ public class InstanceMetric {
 
     public List<Metric> getAllMetrics() {
         if(allMetrics == null){
-            allMetrics = new ArrayList<Metric>();
+            allMetrics = new ArrayList<>();
         }
         return allMetrics;
     }

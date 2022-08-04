@@ -20,7 +20,7 @@
         <execution-timeout-in-secs>60</execution-timeout-in-secs>
         <task-arguments>
             <!-- config file-->
-            <argument name="config-file" is-required="true" default-value="monitors/MemcachedMonitor/config.yaml" />
+            <argument name="config-file" is-required="true" default-value="monitors/MemcachedMonitor/config.yml" />
         </task-arguments>
         <java-task>
             <classpath>memcached-monitoring-extension.jar</classpath>

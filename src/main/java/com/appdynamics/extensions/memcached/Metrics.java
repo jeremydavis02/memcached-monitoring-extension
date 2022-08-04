@@ -10,7 +10,54 @@ package com.appdynamics.extensions.memcached;
 import java.util.Map;
 
 /**
+ * TODO cross check and add stats listed below to stats map
  * A container for all the metrics supported from memcached.
+ * STAT pid 872
+ * STAT uptime 763112
+ * STAT time 1659469252
+ * STAT version 1.6.10
+ * STAT libevent 2.0.22-stable
+ * STAT pointer_size 64
+ * STAT rusage_user 2.421000
+ * STAT rusage_system 6.265000
+ * STAT max_connections 1024
+ * STAT curr_connections 13
+ * STAT total_connections 37
+ * STAT rejected_connections 0
+ * STAT connection_structures 14
+ * STAT response_obj_oom 0
+ * STAT response_obj_count 1
+ * STAT response_obj_bytes 16384
+ * STAT read_buf_count 5
+ * STAT read_buf_bytes 81920
+ * STAT read_buf_bytes_free 49152
+ * STAT read_buf_oom 0
+ * STAT reserved_fds 20
+ * STAT cmd_get 0
+ * STAT cmd_set 0
+ * STAT cmd_flush 0
+ * STAT cmd_touch 0
+ * STAT cmd_meta 0
+ * STAT get_hits 0
+ * STAT get_misses 0
+ * STAT get_expired 0
+ * STAT get_flushed 0
+ * STAT delete_misses 0
+ * STAT delete_hits 0
+ * STAT incr_misses 0
+ * STAT incr_hits 0
+ * STAT decr_misses 0
+ * STAT decr_hits 0
+ * STAT cas_misses 0
+ * STAT cas_hits 0
+ * STAT cas_badval 0
+ * STAT touch_hits 0
+ * STAT touch_misses 0
+ * STAT auth_cmds 0
+ * STAT auth_errors 0
+ * STAT bytes_read 12
+ * STAT bytes_written 0
+ * STAT limit_max
  */
 public class Metrics {
 
