@@ -12,6 +12,7 @@ package com.appdynamics.extensions.memcached;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.memcached.config.Configuration;
 import com.appdynamics.extensions.memcached.config.Server;
+import com.appdynamics.extensions.metrics.DeltaMetricsCalculator;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.util.ValidationUtils;
 import org.slf4j.Logger;
@@ -32,14 +33,14 @@ public class InstanceMetric {
     public static final Logger logger = ExtensionsLoggerFactory.getLogger(InstanceMetric.class);
     private final Server server;
     private final Configuration config;
-    private final Cache<String, BigDecimal> cache;
+    private final DeltaMetricsCalculator deltaMetricsCalculator;
 
-    public InstanceMetric(String displayName, Map<String,String> metricsMap, Server server, Configuration config, Cache<String, BigDecimal> cache){
+    public InstanceMetric(String displayName, Map<String,String> metricsMap, Server server, Configuration config, DeltaMetricsCalculator deltaMetricsCalculator){
         this.displayName = displayName;
         this.metricsMap = metricsMap;
         this.server = server;
         this.config = config;
-        this.cache = cache;
+        this.deltaMetricsCalculator = deltaMetricsCalculator;
     }
     public void populateMetrics(){
 
@@ -48,8 +49,11 @@ public class InstanceMetric {
             for (Map.Entry<String, String> entry : this.metricsMap.entrySet()) {
                 String metricKey = entry.getKey();
                 String metricValue = entry.getValue();
-                try {
+                //try {
                     //validation utils throws warning and stack anytime not valid num
+                    //let try and head that off with our own check
+                    //Double.parseDouble(metricValue);
+                    //if it turns out logging outside workbench is too noisy
                     if (ValidationUtils.isValidMetricValue(metricValue)) {
 
                         BigDecimal val = new BigDecimal(metricValue);
@@ -58,26 +62,25 @@ public class InstanceMetric {
                         if (this.config.getIgnoreDelta().contains(metricKey)) {
                             logger.debug("Ignore delta calculation for {}" + full_metric_path);
                         } else {
-                            //TODO as it turns out DeltaMetricsCalculator will do this
-                            //could replace the global cache pointer with this class instance
-                            //just run metricValue = calculateDelta(full_metric_path, val)
-                            BigDecimal cache_val = this.cache.getIfPresent(full_metric_path);
-                            if (cache_val != null) {
-                                cache.put(full_metric_path, val);
-                                BigDecimal deltaValue = val.subtract(cache_val);
-                                metricValue = deltaValue.toString();
+                            val = this.deltaMetricsCalculator.calculateDelta(full_metric_path, val);
+                            //returns null if not in the cache, so that in theory means we are getting
+                            //first metric so just use it
+                            if(val != null) {
+                                metricValue = val.toString();
                             }
-
                         }
                         Metric metric = new Metric(metricKey, metricValue, full_metric_path);
 
                         allMetrics.add(metric);
                     }
-                }
+                    else {
+                        logger.debug("Ignoring metric with metricKey= " + metricKey + " ,metricValue= " + metricValue);
+                    }
+                /*}
                 catch (Exception e){
                     logger.debug("Ignoring metric with metricKey= " + metricKey + " ,metricValue= " + metricValue);
-                    logger.error(e.getMessage());
-                }
+                    logger.error(e.toString());
+                }*/
 
             }
         }

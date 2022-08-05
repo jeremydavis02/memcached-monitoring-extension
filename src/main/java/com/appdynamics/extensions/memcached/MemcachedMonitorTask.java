@@ -8,6 +8,7 @@ import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.memcached.config.Server;
 import static com.appdynamics.extensions.memcached.Constant.*;
 import com.appdynamics.extensions.memcached.config.Configuration;
+import com.appdynamics.extensions.metrics.DeltaMetricsCalculator;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.cache.Cache;
 import com.google.common.collect.Lists;
@@ -37,14 +38,14 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
     private final String metricPathPrefix;
     private final Configuration config;
     private InstanceMetric server_stats;
-    private Cache<String, BigDecimal> cache;
-    public MemcachedMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper, Server server, Configuration config, Cache cache) {
+    private DeltaMetricsCalculator deltaMetricsCalculator;
+    public MemcachedMonitorTask(MonitorContextConfiguration contextConfiguration, MetricWriteHelper metricWriteHelper, Server server, Configuration config, DeltaMetricsCalculator deltaMetricsCalculator) {
         this.server = server;
         this.contextConfiguration = contextConfiguration;
         this.metricWriteHelper = metricWriteHelper;
         this.metricPathPrefix = this.contextConfiguration.getMetricPrefix() + METRIC_SEPARATOR + server.getDisplayName() + METRIC_SEPARATOR;
         this.config = config;
-        this.cache = cache;
+        this.deltaMetricsCalculator = deltaMetricsCalculator;
     }
 
     @Override
@@ -77,7 +78,7 @@ public class MemcachedMonitorTask implements AMonitorTaskRunnable {
                 if (it.hasNext()) {
                     InetSocketAddress sockAddress = it.next();
                     Map<String, String>statsmap = stats.get(sockAddress);
-                    InstanceMetric server_instance = new InstanceMetric(this.server.getDisplayName(), statsmap, this.server, this.config, this.cache);
+                    InstanceMetric server_instance = new InstanceMetric(this.server.getDisplayName(), statsmap, this.server, this.config, this.deltaMetricsCalculator);
                     server_instance.populateMetrics();
                     this.server_stats = server_instance;
                 } else {

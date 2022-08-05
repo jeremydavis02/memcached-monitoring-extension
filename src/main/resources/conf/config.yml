@@ -20,23 +20,8 @@ numberOfThreads: 5
 # an ever-increasing value. To make these metrics more useful delta from the previous run is calculated and reported as the
 # default behavior. List the metrics in "ignoreDelta", if delta calculation should be avoided for any metric.
 ignoreDelta: [
-
 ]
 
-# Jeremy Davis removing the below as it is no longer inherent feature
-#Metric Overrides. Change this if you want to transform the metric key or want more control on the metrics.
-# For most cases, this should not be touched.
-#
-#----------------------------------------------------------------------------------------------------------------------
-#metricOverrides:
-#  - metricKey: ".*version.*"
-#    disabled: true
-#
-#  - metricKey: ".*libevent.*"
-#    disabled: true
-#
-#  - metricKey: ".*time"
-#    disabled: true
 
 controllerInfo:
   controllerHost: ""

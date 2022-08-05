@@ -10,56 +10,26 @@ package com.appdynamics.extensions.memcached;
 import java.util.Map;
 
 /**
- * TODO cross check and add stats listed below to stats map
  * A container for all the metrics supported from memcached.
- * STAT pid 872
- * STAT uptime 763112
- * STAT time 1659469252
- * STAT version 1.6.10
- * STAT libevent 2.0.22-stable
- * STAT pointer_size 64
- * STAT rusage_user 2.421000
- * STAT rusage_system 6.265000
- * STAT max_connections 1024
- * STAT curr_connections 13
- * STAT total_connections 37
- * STAT rejected_connections 0
- * STAT connection_structures 14
- * STAT response_obj_oom 0
- * STAT response_obj_count 1
- * STAT response_obj_bytes 16384
- * STAT read_buf_count 5
- * STAT read_buf_bytes 81920
- * STAT read_buf_bytes_free 49152
- * STAT read_buf_oom 0
- * STAT reserved_fds 20
- * STAT cmd_get 0
- * STAT cmd_set 0
- * STAT cmd_flush 0
- * STAT cmd_touch 0
- * STAT cmd_meta 0
- * STAT get_hits 0
- * STAT get_misses 0
- * STAT get_expired 0
- * STAT get_flushed 0
- * STAT delete_misses 0
- * STAT delete_hits 0
- * STAT incr_misses 0
- * STAT incr_hits 0
- * STAT decr_misses 0
- * STAT decr_hits 0
- * STAT cas_misses 0
- * STAT cas_hits 0
- * STAT cas_badval 0
- * STAT touch_hits 0
- * STAT touch_misses 0
- * STAT auth_cmds 0
- * STAT auth_errors 0
- * STAT bytes_read 12
- * STAT bytes_written 0
- * STAT limit_max
  */
 public class Metrics {
+
+    //public static final String UPTIME = "uptime";
+    public static final String POINTER_SIZE = "pointer_size";
+    public static final String RUSAGE_USER = "rusage_user";
+    public static final String RUSAGE_SYSTEM = "rusage_system";
+    public static final String MAX_CONNECTIONS = "max_connections";
+    public static final String REJECTED_CONNECTIONS = "rejected_connections";
+    public static final String RESPONSE_OBJ_OOM = "response_obj_oom";
+    public static final String RESPONSE_OBJ_COUNT = "response_obj_count";
+    public static final String RESPONSE_OBJ_BYTES = "response_obj_bytes";
+    public static final String READ_BUF_COUNT = "read_buf_count";
+    public static final String READ_BUF_BYTES = "read_buf_bytes";
+    public static final String READ_BUF_BYTES_FREE = "read_buf_bytes_free";
+    public static final String READ_BUF_OOM = "read_buf_oom";
+    public static final String CMD_META = "cmd_meta";
+    public static final String GET_EXPIRED = "get_expired";
+    public static final String GET_FLUSHED = "get_flushed";
 
     public static final String CURR_ITEMS = "curr_items";
     public static final String TOTAL_ITEMS = "total_items";
@@ -99,6 +69,26 @@ public class Metrics {
     public static final String EXPIRED_UNFETCHED = "expired_unfetched";
     public static final String EVICTED_UNFETCHED = "evicted_unfetched";
     public static final String CRAWLER_RECLAIMED = "crawler_reclaimed";
+
+
+
+   // private String uptime;
+    private String pointerSize;
+    private String rusageUser;
+    private String rusageSystem;
+    private String maxConnections;
+    private String rejectedConnections;
+    private String responseObjOom;
+    private String responseObjCount;
+    private String responseObjBytes;
+    private String readBufCount;
+    private String readBufBytes;
+    private String readBufBytesFree;
+    private String readBufOom;
+    private String cmdMeta;
+    private String getExpired;
+    private String getFlushed;
+
     /*Current number of items stored*/
     private String currentItems;
 
@@ -214,6 +204,23 @@ public class Metrics {
     private String crawlerReclaimed;
 
     public Metrics(Map<String,String> metrics) {
+
+        //this.uptime = metrics.get(UPTIME);
+        this.pointerSize = metrics.get(POINTER_SIZE);
+        this.rusageUser = metrics.get(RUSAGE_USER);
+        this.rusageSystem = metrics.get(RUSAGE_SYSTEM);
+        this.maxConnections = metrics.get(MAX_CONNECTIONS);
+        this.rejectedConnections = metrics.get(REJECTED_CONNECTIONS);
+        this.responseObjOom = metrics.get(RESPONSE_OBJ_OOM);
+        this.responseObjCount = metrics.get(RESPONSE_OBJ_COUNT);
+        this.responseObjBytes = metrics.get(RESPONSE_OBJ_BYTES);
+        this.readBufCount = metrics.get(READ_BUF_COUNT);
+        this.readBufBytes = metrics.get(READ_BUF_BYTES);
+        this.readBufOom = metrics.get(READ_BUF_OOM);
+        this.cmdMeta = metrics.get(CMD_META);
+        this.getExpired = metrics.get(GET_EXPIRED);
+        this.getFlushed = metrics.get(GET_FLUSHED);
+
         this.currentItems = metrics.get(CURR_ITEMS);
         this.totalItems = metrics.get(TOTAL_ITEMS);
         this.bytes = metrics.get(BYTES);
@@ -252,6 +259,134 @@ public class Metrics {
         this.expiredUnfetched = metrics.get(EXPIRED_UNFETCHED);
         this.evictedUnfetched = metrics.get(EVICTED_UNFETCHED);
         this.crawlerReclaimed = metrics.get(CRAWLER_RECLAIMED);
+    }
+
+    /*public String getUptime() {
+        return uptime;
+    }
+
+    public void setUptime(String uptime) {
+        this.uptime = uptime;
+    }*/
+
+    public String getPointerSize() {
+        return pointerSize;
+    }
+
+    public void setPointerSize(String pointerSize) {
+        this.pointerSize = pointerSize;
+    }
+
+    public String getRusageUser() {
+        return rusageUser;
+    }
+
+    public void setRusageUser(String rusageUser) {
+        this.rusageUser = rusageUser;
+    }
+
+    public String getRusageSystem() {
+        return rusageSystem;
+    }
+
+    public void setRusageSystem(String rusageSystem) {
+        this.rusageSystem = rusageSystem;
+    }
+
+    public String getMaxConnections() {
+        return maxConnections;
+    }
+
+    public void setMaxConnections(String maxConnections) {
+        this.maxConnections = maxConnections;
+    }
+
+    public String getRejectedConnections() {
+        return rejectedConnections;
+    }
+
+    public void setRejectedConnections(String rejectedConnections) {
+        this.rejectedConnections = rejectedConnections;
+    }
+
+    public String getResponseObjOom() {
+        return responseObjOom;
+    }
+
+    public void setResponseObjOom(String responseObjOom) {
+        this.responseObjOom = responseObjOom;
+    }
+
+    public String getResponseObjCount() {
+        return responseObjCount;
+    }
+
+    public void setResponseObjCount(String responseObjCount) {
+        this.responseObjCount = responseObjCount;
+    }
+
+    public String getResponseObjBytes() {
+        return responseObjBytes;
+    }
+
+    public void setResponseObjBytes(String responseObjBytes) {
+        this.responseObjBytes = responseObjBytes;
+    }
+
+    public String getReadBufCount() {
+        return readBufCount;
+    }
+
+    public void setReadBufCount(String readBufCount) {
+        this.readBufCount = readBufCount;
+    }
+
+    public String getReadBufBytes() {
+        return readBufBytes;
+    }
+
+    public void setReadBufBytes(String readBufBytes) {
+        this.readBufBytes = readBufBytes;
+    }
+
+    public String getReadBufBytesFree() {
+        return readBufBytesFree;
+    }
+
+    public void setReadBufBytesFree(String readBufBytesFree) {
+        this.readBufBytesFree = readBufBytesFree;
+    }
+
+    public String getReadBufOom() {
+        return readBufOom;
+    }
+
+    public void setReadBufOom(String readBufOom) {
+        this.readBufOom = readBufOom;
+    }
+
+    public String getCmdMeta() {
+        return cmdMeta;
+    }
+
+    public void setCmdMeta(String cmdMeta) {
+        this.cmdMeta = cmdMeta;
+    }
+
+    public String getGetExpired() {
+        return getExpired;
+    }
+
+    public void setGetExpired(String getExpired) {
+        this.getExpired = getExpired;
+    }
+
+    public String getGetFlushed() {
+        return getFlushed;
+    }
+
+    public void setGetFlushed(String getFlushed) {
+        this.getFlushed = getFlushed;
     }
 
     public String getCurrentItems() {

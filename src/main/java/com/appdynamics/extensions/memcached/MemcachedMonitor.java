@@ -12,6 +12,7 @@ import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
+import com.appdynamics.extensions.metrics.DeltaMetricsCalculator;
 import com.appdynamics.extensions.util.AssertUtils;
 
 import com.appdynamics.extensions.memcached.config.Configuration;
@@ -47,7 +48,7 @@ public class MemcachedMonitor extends ABaseMonitor {
     private MonitorContextConfiguration monitorContextConfiguration;
     private Map<String, ?> configYml = Maps.newHashMap();
     private Configuration config;
-    private Cache<String, BigDecimal> cache;
+    private DeltaMetricsCalculator deltaCalculator;
 
     @Override
     protected String getDefaultMetricPrefix() {
@@ -70,7 +71,7 @@ public class MemcachedMonitor extends ABaseMonitor {
     protected void initializeMoreStuff(Map<String, String> args) {
         monitorContextConfiguration = getContextConfiguration();
         configYml = monitorContextConfiguration.getConfigYml();
-        this.cache = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+        this.deltaCalculator = new DeltaMetricsCalculator(300);
     }
 
     @Override
@@ -84,7 +85,7 @@ public class MemcachedMonitor extends ABaseMonitor {
                         AssertUtils.assertNotNull(server.getDisplayName(), CFG_DISPLAY_NAME + " can not be null in the config.yml");
                         AssertUtils.assertNotNull(server.getServer(), CFG_SERVER + " can not be null in the config.yml");
                         logger.info("Starting the Memcached Task for server : " + server.getDisplayName());
-                        MemcachedMonitorTask task = new MemcachedMonitorTask(this.monitorContextConfiguration, serviceProvider.getMetricWriteHelper(), server, this.config, this.cache);
+                        MemcachedMonitorTask task = new MemcachedMonitorTask(this.monitorContextConfiguration, serviceProvider.getMetricWriteHelper(), server, this.config, this.deltaCalculator);
                         serviceProvider.submit(server.getDisplayName(), task);
                     }
                 }
