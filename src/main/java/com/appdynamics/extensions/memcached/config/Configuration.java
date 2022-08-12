@@ -26,6 +26,7 @@ public class Configuration {
     //String encryptionKey;
     long timeout = 60000;
     Set<String> ignoreDelta;
+    Set<String> ignoreMetric;
 
     public ArrayList<Server> getServers() {
         return servers;
@@ -69,6 +70,17 @@ public class Configuration {
 
     public void setTimeout(long timeout) {
         this.timeout = timeout;
+    }
+
+    public Set<String> getIgnoreMetric() {
+        if(ignoreMetric == null){
+            ignoreMetric = Sets.newHashSet();
+        }
+        return ignoreMetric;
+    }
+
+    public void setIgnoreMetric(Set<String> ignoreMetric) {
+        this.ignoreMetric = ignoreMetric;
     }
 
     public Set<String> getIgnoreDelta() {

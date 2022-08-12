@@ -15,6 +15,7 @@ public class Constant {
     public static final String CFG_METRIC_PREFIX = "metricPrefix";
     public static final String CFG_TIMEOUT = "timeout";
     public static final String CFG_IGNORE_DELTA = "ignoreDelta";
+    public static final String CFG_IGNORE_METRIC = "ignoreMetric";
 
     static {
         METRIC_PREFIX = "Custom Metrics|Memcached";

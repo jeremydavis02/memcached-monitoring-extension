@@ -54,7 +54,7 @@ public class InstanceMetric {
                     //let try and head that off with our own check
                     //Double.parseDouble(metricValue);
                     //if it turns out logging outside workbench is too noisy
-                    if (ValidationUtils.isValidMetricValue(metricValue)) {
+                    if (ValidationUtils.isValidMetricValue(metricValue) && !this.config.getIgnoreMetric().contains(metricKey)) {
 
                         BigDecimal val = new BigDecimal(metricValue);
                         String metricPath = this.config.getMetricPrefix() + this.server.getDisplayName() + Constant.METRIC_SEPARATOR;

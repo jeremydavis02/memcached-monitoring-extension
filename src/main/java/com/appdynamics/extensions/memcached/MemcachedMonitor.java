@@ -115,8 +115,10 @@ public class MemcachedMonitor extends ABaseMonitor {
             setServers(server_arr);
             Integer t = (Integer) configYml.get(CFG_TIMEOUT);
             ArrayList<String> ignoreDeltas = (ArrayList<String>) configYml.get(CFG_IGNORE_DELTA);
+            ArrayList<String> ignoreMetrics = (ArrayList<String>) configYml.get(CFG_IGNORE_METRIC);
             setTimeout(t.longValue());
             setIgnoreDelta(new HashSet<>(ignoreDeltas));
+            setIgnoreMetric(new HashSet<>(ignoreMetrics));
         }};
         return this.config;
     }
