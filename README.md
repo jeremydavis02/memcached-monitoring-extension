@@ -168,3 +168,5 @@ For any questions or feature request, please contact [AppDynamics Center of Exce
 [GitHub]: https://github.com/Appdynamics/memcached-monitoring-extension
 [Community]: http://community.appdynamics.com/
 [AppDynamics Center of Excellence]: mailto:ace-request@appdynamics.com
+
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/jeremydavis02/memcached-monitoring-extension)
